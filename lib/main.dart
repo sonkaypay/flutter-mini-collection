@@ -30,11 +30,22 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  var i = 0;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: MiniCollectionWidget(collections.first),
+        child: Dismissible(
+          direction: DismissDirection.up,
+          key: ValueKey(i),
+          onDismissed: (_) {
+            setState(() {
+              i = (i + 1) % collections.length;
+            });
+          },
+          child: MiniCollectionWidget(collections[i]),
+        ),
       ),
     );
   }
