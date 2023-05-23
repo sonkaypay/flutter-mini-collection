@@ -7,9 +7,14 @@ import 'package:mini_collection_poc/thirdparty/orientation.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
 
 class ProductTagWidget extends StatefulWidget {
+  final double iconSize;
   final Product product;
 
-  const ProductTagWidget(this.product, {super.key});
+  const ProductTagWidget(
+    this.product, {
+    required this.iconSize,
+    super.key,
+  });
 
   @override
   State<ProductTagWidget> createState() => _ProductTagWidgetState();
@@ -18,8 +23,6 @@ class ProductTagWidget extends StatefulWidget {
 class _ProductTagWidgetState extends State<ProductTagWidget> {
   @override
   Widget build(BuildContext context) {
-    const iconSize = 44.0;
-
     return AccelerometerEventBuilder(
       builder: (context, data) {
         final orientation = OrientationProvider.of(context);
@@ -29,10 +32,12 @@ class _ProductTagWidgetState extends State<ProductTagWidget> {
           NativeDeviceOrientation.portraitUp => data?.x ?? .0,
           _ => .0
         };
+        final iconSize = widget.iconSize;
+
         return Transform.rotate(
           angle: angle * pi / 18.0,
           child: Transform.translate(
-            offset: const Offset(-iconSize / 2, -iconSize / 2),
+            offset: Offset(-iconSize / 2, -iconSize / 2),
             child: IconButton(
               onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
 class AccelerometerEventBuilder extends StatelessWidget {
+  static bool debugIsEnabled = true;
+
   final Widget Function(BuildContext context, AccelerometerEvent? event)
       builder;
 
@@ -10,8 +12,9 @@ class AccelerometerEventBuilder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (defaultTargetPlatform != TargetPlatform.android &&
-        defaultTargetPlatform != TargetPlatform.iOS) {
+    if (!debugIsEnabled ||
+        (defaultTargetPlatform != TargetPlatform.android &&
+            defaultTargetPlatform != TargetPlatform.iOS)) {
       return builder(context, null);
     }
 

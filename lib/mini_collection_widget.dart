@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -7,6 +8,8 @@ import 'package:mini_collection_poc/product_tag_widget.dart';
 import 'package:mini_collection_poc/thirdparty/orientation.dart';
 
 class MiniCollectionWidget extends StatefulWidget {
+  static bool debugDeterministicIndicator = false;
+
   final MiniCollection data;
 
   const MiniCollectionWidget(this.data, {super.key});
@@ -16,6 +19,8 @@ class MiniCollectionWidget extends StatefulWidget {
 }
 
 class _MiniCollectionWidgetState extends State<MiniCollectionWidget> {
+  final imageKey = GlobalKey();
+
   late final ImageProvider imageProvider;
   late final ImageStream imageStream;
   late final ImageStreamListener imageStreamListener;
@@ -51,23 +56,34 @@ class _MiniCollectionWidgetState extends State<MiniCollectionWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final image = Image(image: imageProvider, key: imageKey);
+
     return FutureBuilder(
       future: imageSizeCompleter?.future,
       builder: (context, AsyncSnapshot<Size> snapshot) {
         if (!snapshot.hasData) {
-          return const Center(
-            child: CircularProgressIndicator.adaptive(),
+          return Center(
+            child: MiniCollectionWidget.debugDeterministicIndicator
+                ? image
+                : const CircularProgressIndicator.adaptive(),
           );
         }
+
+        final size = MediaQuery.sizeOf(context);
+        final side = size.shortestSide;
+        final iconSize = max(44.0, side / 10);
 
         return OrientationProvider(
           child: _MiniCollectionLayout(
             data: widget.data,
             imageSize: snapshot.requireData,
             children: [
-              Image(image: imageProvider),
+              image,
               for (final product in widget.data.products)
-                ProductTagWidget(product),
+                ProductTagWidget(
+                  product,
+                  iconSize: iconSize,
+                ),
             ],
           ),
         );
