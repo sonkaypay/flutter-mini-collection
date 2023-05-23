@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  native_device_orientation: ^1.1.4
+  sensors_plus: ^3.0.1
 
 dev_dependencies:
   flutter_test:
@@ -17,5 +19,6 @@ dev_dependencies:
 
 flutter:
   assets:
+    - assets/flaticon/
     - assets/unsplash/
   uses-material-design: true

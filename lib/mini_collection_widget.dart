@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:mini_collection_poc/data.dart';
+import 'package:mini_collection_poc/product_tag_widget.dart';
+import 'package:mini_collection_poc/thirdparty/orientation.dart';
 
 class MiniCollectionWidget extends StatefulWidget {
   final MiniCollection data;
@@ -58,21 +60,16 @@ class _MiniCollectionWidgetState extends State<MiniCollectionWidget> {
           );
         }
 
-        return _MiniCollectionLayout(
-          data: widget.data,
-          imageSize: snapshot.requireData,
-          children: [
-            Image(image: imageProvider),
-            for (final product in widget.data.products)
-              ElevatedButton(
-                onPressed: () =>
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text(product.name),
-                  duration: const Duration(milliseconds: 100),
-                )),
-                child: const SizedBox.shrink(),
-              ),
-          ],
+        return OrientationProvider(
+          child: _MiniCollectionLayout(
+            data: widget.data,
+            imageSize: snapshot.requireData,
+            children: [
+              Image(image: imageProvider),
+              for (final product in widget.data.products)
+                ProductTagWidget(product),
+            ],
+          ),
         );
       },
     );
