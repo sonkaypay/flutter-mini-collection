@@ -4,11 +4,14 @@ PODS:
     - Flutter
   - sensors_plus (0.0.1):
     - Flutter
+  - tilt (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - native_device_orientation (from `.symlinks/plugins/native_device_orientation/ios`)
   - sensors_plus (from `.symlinks/plugins/sensors_plus/ios`)
+  - tilt (from `.symlinks/plugins/tilt/ios`)
 
 EXTERNAL SOURCES:
   Flutter:
@@ -17,11 +20,14 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/native_device_orientation/ios"
   sensors_plus:
     :path: ".symlinks/plugins/sensors_plus/ios"
+  tilt:
+    :path: ".symlinks/plugins/tilt/ios"
 
 SPEC CHECKSUMS:
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   native_device_orientation: 3b4cfc9565a7b879cc4fde282b3e27745e852d0d
-  sensors_plus: bda64198ccc7d3ccbb49e6ae17d92f67687bee20
+  sensors_plus: 5717760720f7e6acd96fdbd75b7428f5ad755ec2
+  tilt: 7409aad7ca82ef172a40d8f275d2534ce7b9c79b
 
 PODFILE CHECKSUM: 70d9d25280d0dd177a5f637cdb0f0b0b12c6a189
 

@@ -1,15 +1,14 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_toolkit/golden_toolkit.dart';
 import 'package:mini_collection_poc/data.dart';
 import 'package:mini_collection_poc/mini_collection_widget.dart';
-import 'package:mini_collection_poc/thirdparty/accelerometer_event.dart';
 import 'package:mini_collection_poc/thirdparty/orientation.dart';
+import 'package:mini_collection_poc/thirdparty/tilt.dart';
 
 Future<void> main() async {
   await loadAppFonts();
 
-  AccelerometerEventBuilder.debugIsEnabled = false;
+  TiltBuilder.debugIsEnabled = false;
   MiniCollectionWidget.debugDeterministicIndicator = true;
   OrientationProvider.debugIsEnabled = false;
 

@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   native_device_orientation: ^1.1.4
-  sensors_plus: ^3.0.1
+  tilt: ^0.0.2
 
 dev_dependencies:
   flutter_test:

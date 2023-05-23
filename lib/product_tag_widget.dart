@@ -1,9 +1,7 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:mini_collection_poc/data.dart';
-import 'package:mini_collection_poc/thirdparty/accelerometer_event.dart';
 import 'package:mini_collection_poc/thirdparty/orientation.dart';
+import 'package:mini_collection_poc/thirdparty/tilt.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
 
 class ProductTagWidget extends StatefulWidget {
@@ -23,21 +21,21 @@ class ProductTagWidget extends StatefulWidget {
 class _ProductTagWidgetState extends State<ProductTagWidget> {
   @override
   Widget build(BuildContext context) {
-    return AccelerometerEventBuilder(
-      builder: (context, data) {
+    return TiltBuilder(
+      builder: (context, tilt) {
         final orientation = OrientationProvider.of(context);
         final angle = switch (orientation) {
-          NativeDeviceOrientation.landscapeLeft => -1 * (data?.y ?? .0),
-          NativeDeviceOrientation.landscapeRight => (data?.y ?? .0),
-          NativeDeviceOrientation.portraitUp => data?.x ?? .0,
+          NativeDeviceOrientation.landscapeLeft => tilt.dx,
+          NativeDeviceOrientation.landscapeRight => -tilt.dx,
+          NativeDeviceOrientation.portraitUp => tilt.dy,
           _ => .0
         };
         final iconSize = widget.iconSize;
 
-        return Transform.rotate(
-          angle: angle * pi / 18.0,
-          child: Transform.translate(
-            offset: Offset(-iconSize / 2, -iconSize / 2),
+        return Transform.translate(
+          offset: Offset(-iconSize / 2, -iconSize / 2),
+          child: Transform.rotate(
+            angle: angle,
             child: IconButton(
               onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
