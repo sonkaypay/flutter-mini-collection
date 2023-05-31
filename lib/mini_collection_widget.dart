@@ -130,6 +130,10 @@ class _MiniCollectionLayoutRenderObject extends RenderBox
 
     const height = 100.0;
     final width = child.getMaxIntrinsicWidth(height);
+    if (width == 0) {
+      return null;
+    }
+
     return width / height;
   }
 
