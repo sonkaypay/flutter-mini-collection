@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_toolkit/golden_toolkit.dart';
 import 'package:mini_collection_poc/data.dart';
+import 'package:mini_collection_poc/image_widget.dart';
 import 'package:mini_collection_poc/mini_collection_widget.dart';
 import 'package:mini_collection_poc/thirdparty/orientation.dart';
 import 'package:mini_collection_poc/thirdparty/tilt.dart';
@@ -8,8 +9,8 @@ import 'package:mini_collection_poc/thirdparty/tilt.dart';
 Future<void> main() async {
   await loadAppFonts();
 
+  ImageWidget.debugUseImageAsset = true;
   TiltBuilder.debugIsEnabled = false;
-  MiniCollectionWidget.debugDeterministicIndicator = true;
   OrientationProvider.debugIsEnabled = false;
 
   group('MiniCollectionWidget', () {

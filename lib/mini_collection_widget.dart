@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:mini_collection_poc/data.dart';
+import 'package:mini_collection_poc/image_widget.dart';
 import 'package:mini_collection_poc/product_tag_widget.dart';
 import 'package:mini_collection_poc/thirdparty/orientation.dart';
 
 class MiniCollectionWidget extends StatelessWidget {
-  static bool debugDeterministicIndicator = false;
-
   final MiniCollection data;
 
   const MiniCollectionWidget(this.data, {super.key});
@@ -17,7 +16,7 @@ class MiniCollectionWidget extends StatelessWidget {
       child: _MiniCollectionLayout(
         data,
         children: [
-          Image.asset(data.assetName),
+          ImageWidget(data),
           ...data.products.map(ProductTagWidget.new),
         ],
       ),
@@ -125,6 +124,11 @@ class _MiniCollectionLayoutRenderObject extends RenderBox
 
   static Size guessImageSize(RenderBox? image) {
     if (image == null) {
+      return Size.zero;
+    }
+
+    if (image is! RenderImage) {
+      // probably some indicator is being rendered, ignore it for now
       return Size.zero;
     }
 
