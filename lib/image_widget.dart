@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:mini_collection_poc/data.dart';
 
 class ImageWidget extends StatelessWidget {
@@ -20,16 +21,23 @@ class ImageWidget extends StatelessWidget {
     return Image.network(
       'https://raw.githubusercontent.com/sonkaypay/flutter-mini-collection/main/${data.assetName}',
       excludeFromSemantics: true,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
+      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+        if (frame != null) return child;
 
-        final expectedTotalBytes = loadingProgress.expectedTotalBytes;
-        return Center(
-          child: CircularProgressIndicator.adaptive(
-            value: expectedTotalBytes != null
-                ? loadingProgress.cumulativeBytesLoaded / expectedTotalBytes
-                : null,
-          ),
+        return Stack(
+          children: [
+            AspectRatio(
+              aspectRatio: data.aspectRatio,
+              child: BlurHash(
+                hash: data.blurHash,
+              ),
+            ),
+            const Positioned.fill(
+              child: Center(
+                child: CircularProgressIndicator.adaptive(),
+              ),
+            ),
+          ],
         );
       },
     );

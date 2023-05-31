@@ -3,11 +3,15 @@ import 'package:flutter/rendering.dart';
 
 @immutable
 class MiniCollection {
+  final double aspectRatio;
   final String assetName;
+  final String blurHash;
   final List<Product> products;
 
   const MiniCollection({
+    required this.aspectRatio,
     required this.assetName,
+    required this.blurHash,
     required this.products,
   });
 }
@@ -25,7 +29,9 @@ class Product {
 
 const collections = <MiniCollection>[
   MiniCollection(
+    aspectRatio: 2629.0 / 4679.0,
     assetName: 'assets/unsplash/diego-sanchez-HXLz1ua76yA-unsplash.jpg',
+    blurHash: 'LBF=s[?G*0I;9bbuITIU58D%s8-o',
     products: [
       Product(
         name: 'Dress',
@@ -42,7 +48,9 @@ const collections = <MiniCollection>[
     ],
   ),
   MiniCollection(
+    aspectRatio: 4790.0 / 3193.0,
     assetName: 'assets/unsplash/freestocks-A11MXTzUhLE-unsplash.jpg',
+    blurHash: 'L5KB2V0000?w0K?v?H0000tRDi-q',
     products: [
       Product(
         name: 'iPhone',
@@ -55,7 +63,9 @@ const collections = <MiniCollection>[
     ],
   ),
   MiniCollection(
+    aspectRatio: 7806.0 / 5304.0,
     assetName: 'assets/unsplash/roman-bozhko-PypjzKTUqLo-unsplash.jpg',
+    blurHash: 'LzLXb{~qIUWUo#t7WAV@V@WBofj]',
     products: [
       Product(
         name: 'iMac',

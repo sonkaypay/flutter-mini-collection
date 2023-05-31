@@ -47,7 +47,7 @@ class _MiniCollectionLayoutRenderObject extends RenderBox
         RenderBoxContainerDefaultsMixin<RenderBox, _MiniCollectionLayoutData> {
   MiniCollection _data;
 
-  var _guessedImageSize = Size.zero;
+  var _imageIsReady = false;
 
   _MiniCollectionLayoutRenderObject({
     required MiniCollection data,
@@ -71,7 +71,7 @@ class _MiniCollectionLayoutRenderObject extends RenderBox
       context.paintChild(child, childParentData.offset + offset);
       child = childParentData.nextSibling;
 
-      if (_guessedImageSize == Size.zero) {
+      if (!_imageIsReady) {
         // image is still loading, do not render the product tags
         return;
       }
@@ -80,31 +80,32 @@ class _MiniCollectionLayoutRenderObject extends RenderBox
 
   @override
   void performLayout() {
-    _guessedImageSize = guessImageSize(firstChild);
+    final firstRatio = guessChildRatio(firstChild);
     final viewportSize =
         (constraints.hasBoundedHeight && constraints.hasBoundedWidth)
             ? constraints.biggest
-            : _guessedImageSize;
-    Rect image = calculateImageRect(_guessedImageSize, viewportSize);
-    final imageOffset = image.topLeft;
+            : constraints.smallest;
+    final backgroundRect = calculateBackgroundRect(viewportSize, firstRatio);
+    final backgroundOffset = backgroundRect.topLeft;
+    _imageIsReady = firstChild is RenderImage && (firstRatio ?? .0) > 0;
 
     RenderBox? child = firstChild;
     var i = 0;
     while (child != null) {
       final childData = child.parentData! as _MiniCollectionLayoutData;
-      final childIsImage = i == 0;
+      final childIsBackground = i == 0;
       child.layout(
-        childIsImage
-            ? BoxConstraints.tight(image.size)
+        childIsBackground
+            ? BoxConstraints.tight(backgroundRect.size)
             : const BoxConstraints(),
       );
-      if (childIsImage) {
-        childData.offset = imageOffset;
+      if (childIsBackground) {
+        childData.offset = backgroundOffset;
       } else {
         final product = _data.products[i - 1];
         childData.offset = Offset(
-          imageOffset.dx + product.position.dx * image.width,
-          imageOffset.dy + product.position.dy * image.height,
+          backgroundOffset.dx + product.position.dx * backgroundRect.width,
+          backgroundOffset.dy + product.position.dy * backgroundRect.height,
         );
       }
 
@@ -122,23 +123,18 @@ class _MiniCollectionLayoutRenderObject extends RenderBox
     }
   }
 
-  static Size guessImageSize(RenderBox? image) {
-    if (image == null) {
-      return Size.zero;
+  static double? guessChildRatio(RenderBox? child) {
+    if (child == null) {
+      return null;
     }
 
-    if (image is! RenderImage) {
-      // probably some indicator is being rendered, ignore it for now
-      return Size.zero;
-    }
-
-    return image.getDryLayout(const BoxConstraints());
+    const height = 100.0;
+    final width = child.getMaxIntrinsicWidth(height);
+    return width / height;
   }
 
-  static Rect calculateImageRect(Size imageSize, Size viewportSize) {
+  static Rect calculateBackgroundRect(Size viewportSize, double? imageRatio) {
     final viewportRatio = viewportSize.width / viewportSize.height;
-    final imageRatio =
-        imageSize.height != 0 ? imageSize.width / imageSize.height : null;
     if (imageRatio == null) {
       // image is still loading, no need to calculate
       return Rect.fromLTWH(0, 0, viewportSize.width, viewportSize.height);
@@ -146,7 +142,6 @@ class _MiniCollectionLayoutRenderObject extends RenderBox
 
     double imageHeight, imageWidth, left, top;
     double hiddenArea;
-
     if (imageRatio > viewportRatio) {
       // too wide
       imageHeight = viewportSize.height;
