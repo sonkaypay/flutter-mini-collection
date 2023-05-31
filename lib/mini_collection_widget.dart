@@ -1,13 +1,10 @@
-import 'dart:async';
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:mini_collection_poc/data.dart';
 import 'package:mini_collection_poc/product_tag_widget.dart';
 import 'package:mini_collection_poc/thirdparty/orientation.dart';
 
-class MiniCollectionWidget extends StatefulWidget {
+class MiniCollectionWidget extends StatelessWidget {
   static bool debugDeterministicIndicator = false;
 
   final MiniCollection data;
@@ -15,106 +12,32 @@ class MiniCollectionWidget extends StatefulWidget {
   const MiniCollectionWidget(this.data, {super.key});
 
   @override
-  State<MiniCollectionWidget> createState() => _MiniCollectionWidgetState();
-}
-
-class _MiniCollectionWidgetState extends State<MiniCollectionWidget> {
-  final imageKey = GlobalKey();
-
-  late final ImageProvider imageProvider;
-  late final ImageStream imageStream;
-  late final ImageStreamListener imageStreamListener;
-
-  Completer<Size>? imageSizeCompleter;
-
-  @override
-  void initState() {
-    super.initState();
-
-    imageProvider = AssetImage(widget.data.assetName);
-
-    imageStreamListener = ImageStreamListener(
-      (ImageInfo info, bool _) {
-        imageStream.removeListener(imageStreamListener);
-        final image = info.image;
-        final imageSize = Size(image.width.toDouble(), image.height.toDouble());
-        imageSizeCompleter?.complete(imageSize);
-      },
-    );
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    if (imageSizeCompleter == null) {
-      imageSizeCompleter = Completer();
-      imageStream = imageProvider.resolve(const ImageConfiguration())
-        ..addListener(imageStreamListener);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final image = Image(image: imageProvider, key: imageKey);
-
-    return FutureBuilder(
-      future: imageSizeCompleter?.future,
-      builder: (context, AsyncSnapshot<Size> snapshot) {
-        if (!snapshot.hasData) {
-          return Center(
-            child: MiniCollectionWidget.debugDeterministicIndicator
-                ? image
-                : const CircularProgressIndicator.adaptive(),
-          );
-        }
-
-        final size = MediaQuery.sizeOf(context);
-        final side = size.shortestSide;
-        final iconSize = max(44.0, side / 10);
-
-        return OrientationProvider(
-          child: _MiniCollectionLayout(
-            data: widget.data,
-            imageSize: snapshot.requireData,
-            children: [
-              image,
-              for (final product in widget.data.products)
-                ProductTagWidget(
-                  product,
-                  iconSize: iconSize,
-                ),
-            ],
-          ),
-        );
-      },
+    return OrientationProvider(
+      child: _MiniCollectionLayout(
+        data,
+        children: [
+          Image.asset(data.assetName),
+          ...data.products.map(ProductTagWidget.new),
+        ],
+      ),
     );
   }
 }
 
 class _MiniCollectionLayout extends MultiChildRenderObjectWidget {
   final MiniCollection data;
-  final Size imageSize;
 
-  const _MiniCollectionLayout({
-    super.children,
-    required this.data,
-    required this.imageSize,
-  });
+  const _MiniCollectionLayout(this.data, {super.children});
 
   @override
   RenderObject createRenderObject(BuildContext _) =>
-      _MiniCollectionLayoutRenderObject(
-        data: data,
-        imageSize: imageSize,
-      );
+      _MiniCollectionLayoutRenderObject(data: data);
 
   @override
-  void updateRenderObject(BuildContext context,
-          covariant _MiniCollectionLayoutRenderObject renderObject) =>
-      renderObject
-        ..setData(data)
-        ..setImageSize(imageSize);
+  void updateRenderObject(
+          BuildContext _, _MiniCollectionLayoutRenderObject renderObject) =>
+      renderObject.setData(data);
 }
 
 class _MiniCollectionLayoutData extends ContainerBoxParentData<RenderBox> {}
@@ -124,23 +47,16 @@ class _MiniCollectionLayoutRenderObject extends RenderBox
         ContainerRenderObjectMixin<RenderBox, _MiniCollectionLayoutData>,
         RenderBoxContainerDefaultsMixin<RenderBox, _MiniCollectionLayoutData> {
   MiniCollection _data;
-  Size _imageSize;
+
+  var _guessedImageSize = Size.zero;
 
   _MiniCollectionLayoutRenderObject({
     required MiniCollection data,
-    required Size imageSize,
-  })  : _data = data,
-        _imageSize = imageSize;
+  }) : _data = data;
 
   void setData(MiniCollection data) {
     if (!identical(data, _data)) return;
     _data = data;
-    markNeedsLayout();
-  }
-
-  void setImageSize(Size imageSize) {
-    if (imageSize != _imageSize) return;
-    _imageSize = imageSize;
     markNeedsLayout();
   }
 
@@ -149,16 +65,28 @@ class _MiniCollectionLayoutRenderObject extends RenderBox
       defaultHitTestChildren(result, position: position);
 
   @override
-  void paint(PaintingContext context, Offset offset) =>
-      defaultPaint(context, offset);
+  void paint(PaintingContext context, Offset offset) {
+    var child = firstChild;
+    while (child != null) {
+      final childParentData = child.parentData! as _MiniCollectionLayoutData;
+      context.paintChild(child, childParentData.offset + offset);
+      child = childParentData.nextSibling;
+
+      if (_guessedImageSize == Size.zero) {
+        // image is still loading, do not render the product tags
+        return;
+      }
+    }
+  }
 
   @override
   void performLayout() {
+    _guessedImageSize = guessImageSize(firstChild);
     final viewportSize =
         (constraints.hasBoundedHeight && constraints.hasBoundedWidth)
             ? constraints.biggest
-            : _imageSize;
-    Rect image = calculateImageRect(_imageSize, viewportSize);
+            : _guessedImageSize;
+    Rect image = calculateImageRect(_guessedImageSize, viewportSize);
     final imageOffset = image.topLeft;
 
     RenderBox? child = firstChild;
@@ -195,12 +123,26 @@ class _MiniCollectionLayoutRenderObject extends RenderBox
     }
   }
 
+  static Size guessImageSize(RenderBox? image) {
+    if (image == null) {
+      return Size.zero;
+    }
+
+    return image.getDryLayout(const BoxConstraints());
+  }
+
   static Rect calculateImageRect(Size imageSize, Size viewportSize) {
     final viewportRatio = viewportSize.width / viewportSize.height;
-    final imageRatio = imageSize.width / imageSize.height;
+    final imageRatio =
+        imageSize.height != 0 ? imageSize.width / imageSize.height : null;
+    if (imageRatio == null) {
+      // image is still loading, no need to calculate
+      return Rect.fromLTWH(0, 0, viewportSize.width, viewportSize.height);
+    }
 
     double imageHeight, imageWidth, left, top;
     double hiddenArea;
+
     if (imageRatio > viewportRatio) {
       // too wide
       imageHeight = viewportSize.height;

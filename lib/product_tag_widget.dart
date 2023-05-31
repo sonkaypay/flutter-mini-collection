@@ -1,26 +1,22 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:mini_collection_poc/data.dart';
 import 'package:mini_collection_poc/thirdparty/orientation.dart';
 import 'package:mini_collection_poc/thirdparty/tilt.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
 
-class ProductTagWidget extends StatefulWidget {
-  final double iconSize;
+class ProductTagWidget extends StatelessWidget {
   final Product product;
 
-  const ProductTagWidget(
-    this.product, {
-    required this.iconSize,
-    super.key,
-  });
+  const ProductTagWidget(this.product, {super.key});
 
-  @override
-  State<ProductTagWidget> createState() => _ProductTagWidgetState();
-}
-
-class _ProductTagWidgetState extends State<ProductTagWidget> {
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final side = size.shortestSide;
+    final iconSize = max(44.0, side / 10);
+
     return TiltBuilder(
       builder: (context, tilt) {
         final orientation = OrientationProvider.of(context);
@@ -30,7 +26,6 @@ class _ProductTagWidgetState extends State<ProductTagWidget> {
           NativeDeviceOrientation.portraitUp => tilt.dy,
           _ => .0
         };
-        final iconSize = widget.iconSize;
 
         return Transform.translate(
           offset: Offset(-iconSize / 2, -iconSize / 2),
@@ -39,7 +34,7 @@ class _ProductTagWidgetState extends State<ProductTagWidget> {
             child: IconButton(
               onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(widget.product.name),
+                  content: Text(product.name),
                   duration: const Duration(milliseconds: 100),
                 ),
               ),
