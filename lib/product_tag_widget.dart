@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mini_collection_poc/data.dart';
 import 'package:mini_collection_poc/thirdparty/orientation.dart';
@@ -24,6 +25,8 @@ class ProductTagWidget extends StatelessWidget {
           NativeDeviceOrientation.landscapeLeft => tilt.dx,
           NativeDeviceOrientation.landscapeRight => -tilt.dx,
           NativeDeviceOrientation.portraitUp => tilt.dy,
+          // TODO: native_device_orientation needs Flutter Web support
+          NativeDeviceOrientation.unknown => kIsWeb ? tilt.dy : .0,
           _ => .0
         };
 
