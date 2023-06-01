@@ -1,10 +1,10 @@
 {
-	"image": "ghcr.io/cirruslabs/flutter:stable",
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"Dart-Code.flutter"
-			]
-		}
-	}
+  "image": "ghcr.io/cirruslabs/flutter:stable",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Dart-Code.flutter"
+      ]
+    }
+  }
 }
