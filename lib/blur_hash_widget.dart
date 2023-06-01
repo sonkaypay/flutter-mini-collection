@@ -1,4 +1,8 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:blurhash_dart/blurhash_dart.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_shaders/flutter_shaders.dart';
 
@@ -14,18 +18,75 @@ class BlurHashWidget extends StatefulWidget {
 class _BlurHashState extends State<BlurHashWidget> {
   late final BlurHash decoded;
 
+  ui.Image? _image;
+
   @override
   void initState() {
     super.initState();
     decoded = BlurHash.decode(widget.hash);
+
+    final numX = decoded.numCompX;
+    final numY = decoded.numCompY;
+    final byteData = ByteData(numX * numY * 4 * 4);
+    for (var j = 0; j < numY; j++) {
+      final component = decoded.components[j];
+      for (var i = 0; i < numX; i++) {
+        const numberOfFloatsPerPixel = 4;
+        const numberOfBytesPerFloat = 4;
+        final vecOffset =
+            (i * numberOfFloatsPerPixel + j * numX * numberOfFloatsPerPixel) *
+                numberOfBytesPerFloat;
+        final colorTriplet = component[i];
+        byteData.setFloat32(vecOffset, colorTriplet.r);
+        byteData.setFloat32(
+            vecOffset + 1 * numberOfBytesPerFloat, colorTriplet.g);
+        byteData.setFloat32(
+            vecOffset + 2 * numberOfBytesPerFloat, colorTriplet.b);
+        byteData.setFloat32(vecOffset + 3 * numberOfBytesPerFloat, 1.0);
+      }
+    }
+    final pixels = byteData.buffer.asUint8List();
+    print(pixels);
+    ui.decodeImageFromPixels(pixels, numX, numY, ui.PixelFormat.rgbaFloat32,
+        (image) {
+      image.toByteData(format: ui.ImageByteFormat.rawRgba).then((value) {
+        print(value?.buffer.asUint8List());
+      });
+    });
+
+    // ui.ImmutableBuffer.fromUint8List(byteData.buffer.asUint8List()).then(
+    //   (buffer) async {
+    //     final imageDescriptor = ui.ImageDescriptor.raw(
+    //       buffer,
+    //       height: numY,
+    //       width: numX,
+    //       pixelFormat: ui.PixelFormat.rgbaFloat32,
+    //     );
+    //     final codec = await imageDescriptor.instantiateCodec();
+    //     ui.decodeImageFromPixels(pixels, width, height, format, (result) { })
+    //     final frame = await codec.getNextFrame();
+    //     if (mounted) setState(() => _image = frame.image);
+
+    //     frame.image
+    //         .toByteData(format: ui.ImageByteFormat.rawRgba)
+    //         .then((value) {
+    //       print(value?.buffer.asUint8List());
+    //     });
+    //   },
+    // );
   }
 
   @override
   Widget build(BuildContext context) {
     return ShaderBuilder(
       (context, shader, child) {
+        final image = _image;
+        final key = '${widget.hash}-${image != null ? 1 : 0}';
+        print('key=$key');
+
         return CustomPaint(
-          painter: _BlurHashPainter(decoded, shader),
+          key: ValueKey(key),
+          painter: image != null ? _BlurHashPainter(image, shader) : null,
           child: child,
         );
       },
@@ -35,40 +96,19 @@ class _BlurHashState extends State<BlurHashWidget> {
 }
 
 class _BlurHashPainter extends CustomPainter {
-  final BlurHash decoded;
+  final ui.Image image;
   final FragmentShader shader;
 
-  var _hasRangeError = false;
-
-  _BlurHashPainter(this.decoded, this.shader) {
-    try {
-      for (var j = 0; j < decoded.numCompY; j++) {
-        final component = decoded.components[j];
-        for (var i = 0; i < decoded.numCompX; i++) {
-          const colorsOffset = 2;
-          const numberOfFloatsPerVec3 = 3;
-          final vecOffset = colorsOffset +
-              i * numberOfFloatsPerVec3 +
-              j * decoded.numCompX * numberOfFloatsPerVec3;
-          final vec3 = component[i];
-          shader.setFloat(vecOffset, vec3.r);
-          shader.setFloat(vecOffset + 1, vec3.g);
-          shader.setFloat(vecOffset + 2, vec3.b);
-        }
-      }
-    } on RangeError {
-      // Flutter web has some issue with vec3 array in shader
-      // we will capture it here and temporary disable the effect
-      _hasRangeError = true;
-    }
+  _BlurHashPainter(this.image, this.shader) {
+    shader.setFloat(0, image.width.toDouble());
+    shader.setFloat(1, image.height.toDouble());
+    shader.setImageSampler(0, image);
   }
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (_hasRangeError) return;
-
-    shader.setFloat(0, size.width);
-    shader.setFloat(1, size.height);
+    shader.setFloat(2, size.width);
+    shader.setFloat(3, size.height);
 
     final paint = Paint()..shader = shader;
     final rect = Rect.fromLTWH(0, 0, size.width, size.height);
@@ -76,7 +116,5 @@ class _BlurHashPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_BlurHashPainter oldDelegate) =>
-      !identical(decoded, oldDelegate.decoded) ||
-      !identical(shader, oldDelegate.shader);
+  bool shouldRepaint(_BlurHashPainter oldDelegate) => false;
 }
