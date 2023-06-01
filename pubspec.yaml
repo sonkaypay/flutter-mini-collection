@@ -26,5 +26,5 @@ flutter:
     - assets/flaticon/
     - assets/unsplash/
   shaders:
-    - shaders/blurhash43.glsl
+    - shaders/blurhash.glsl
   uses-material-design: true

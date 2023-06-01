@@ -29,7 +29,7 @@ class _BlurHashState extends State<BlurHashWidget> {
           child: child,
         );
       },
-      assetKey: 'shaders/blurhash43.glsl',
+      assetKey: 'shaders/blurhash.glsl',
     );
   }
 }
